@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kinza Sheikh · code • build • ship</title>
+  <!-- fonts: mono + display -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    /* ----- RESET / TOKENS (mono‑first, clean alignment) ----- */
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg:         #0b0b0f;
+      --surface:    #111216;
+      --raise:      #181b20;
+      --border:     rgba(220, 240, 245, 0.08);
+      --border-hi:  rgba(180, 240, 200, 0.2);
+
+      --white:      #edf2f0;
+      --dim:        #a6b3bc;
+      --faint:      #5f6c7a;
+
+      --green:      #2ecc71;        /* fresh code‑green */
+      --green-dim:  rgba(46, 204, 113, 0.1);
+      --amber:      #f39c12;
+      --amber-dim:  rgba(243, 156, 18, 0.1);
+      --blue:       #5dade2;
+
+      --display:    'Syne', sans-serif;
+      --mono:       'JetBrains Mono', monospace;
+
+      --ease:       cubic-bezier(0.23, 1, 0.32, 1);
+      --ease-soft:  cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    body {
+      font-family: var(--mono);
+      background: var(--bg);
+      color: var(--white);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      cursor: none;                /* hide default to show custom cursor */
+    }
+    a { text-decoration: none; color: inherit; cursor: none; }
+
+    /* grain overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 300 300' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+      opacity: 0.02;
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* ----- CUSTOM CURSOR (restored & active) ----- */
+    .cursor {
+      position: fixed;
+      width: 8px;
+      height: 8px;
+      background: var(--green);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 10000;
+      transform: translate(-50%, -50%);
+      transition: width 0.2s, height 0.2s, opacity 0.2s;
+      mix-blend-mode: screen;
+    }
+    .cursor-ring {
+      position: fixed;
+      width: 36px;
+      height: 36px;
+      border: 1px solid rgba(46, 204, 113, 0.35);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: width 0.3s var(--ease-soft), height 0.3s var(--ease-soft);
+    }
+
+    /* container */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 48px;
+    }
+    @media (max-width: 700px) { .container { padding: 0 28px; } }
+
+    /* reveal */
+    .reveal {
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 0.8s var(--ease-soft), transform 0.8s var(--ease-soft);
+    }
+    .reveal.in { opacity: 1; transform: translateY(0); }
+
+    /* ----- NAV ----- */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 200;
+      padding: 24px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid transparent;
+      transition: background 0.4s, padding 0.3s;
+    }
+    nav.scrolled {
+      background: rgba(11, 11, 15, 0.85);
+      backdrop-filter: blur(18px);
+      border-color: var(--border);
+      padding: 16px 48px;
+    }
+    .nav-id {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.3;
+    }
+    .nav-name {
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: 1.2rem;
+      letter-spacing: -0.02em;
+    }
+    .nav-title {
+      font-size: 0.7rem;
+      color: var(--green);
+      letter-spacing: 0.1em;
+    }
+    .nav-links {
+      display: flex;
+      gap: 40px;
+      list-style: none;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+    .nav-links a { color: var(--dim); transition: color 0.2s; }
+    .nav-links a:hover { color: var(--green); }
+    .nav-badge {
+      font-size: 0.75rem;
+      border: 1px solid var(--green);
+      color: var(--green);
+      padding: 8px 20px;
+      transition: 0.2s;
+    }
+    .nav-badge:hover {
+      background: var(--green);
+      color: var(--bg);
+    }
+    @media (max-width: 800px) { .nav-links { display: none; } }
+
+    /* ----- HERO ----- */
+    #hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 140px 0 80px;
+      position: relative;
+    }
+    .hero-grid {
+      position: absolute;
+      inset: 0;
+      background-image: 
+        linear-gradient(var(--green-dim) 1px, transparent 1px),
+        linear-gradient(90deg, var(--green-dim) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: radial-gradient(ellipse at 50% 40%, black 30%, transparent 85%);
+    }
+    .hero-prompt {
+      font-size: 0.9rem;
+      color: var(--green);
+      margin-bottom: 40px;
+      padding: 0 48px;
+      max-width: 1200px;
+      margin-left: auto; margin-right: auto;
+      width: 100%;
+    }
+    .hero-prompt .caret {
+      display: inline-block;
+      width: 2px; height: 18px;
+      background: var(--green);
+      margin-left: 6px;
+      vertical-align: middle;
+      animation: blink 1.2s step-end infinite;
+    }
+
+    .hero-code-line {
+      font-family: var(--mono);
+      font-size: clamp(2.2rem, 4vw, 5.5rem);
+      font-weight: 600;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      color: var(--white);
+      padding: 0 48px;
+      margin: 0 auto;
+      max-width: 1200px;
+      width: 100%;
+    }
+    .hero-code-line .accent { color: var(--green); }
+    .hero-code-line .accent-amber { color: var(--amber); }
+
+    .hero-bottom {
+      padding: 40px 48px 0;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 36px;
+    }
+    .hero-desc {
+      max-width: 700px;
+      font-size: 1rem;
+      color: var(--dim);
+    }
+    .hero-location {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.8rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--faint);
+    }
+    .dot {
+      width: 8px; height: 8px;
+      background: var(--green);
+      border-radius: 50%;
+      box-shadow: 0 0 12px var(--green);
+    }
+    .hero-actions {
+      display: flex;
+      gap: 20px;
+      margin-top: 10px;
+    }
+    .btn-primary, .btn-outline {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+      padding: 12px 28px;
+      text-transform: uppercase;
+      transition: 0.2s;
+    }
+    .btn-primary {
+      background: var(--green);
+      color: var(--bg);
+      border: none;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 25px var(--green-dim); }
+    .btn-outline {
+      border: 1px solid var(--border-hi);
+      color: var(--dim);
+    }
+    .btn-outline:hover { border-color: var(--green); color: var(--green); }
+
+    .hero-stats {
+      display: flex;
+      flex-wrap: wrap;
+      border-top: 1px solid var(--border);
+      margin-top: 60px;
+    }
+    .hero-stat {
+      flex: 1 1 200px;
+      padding: 32px 48px;
+      border-right: 1px solid var(--border);
+    }
+    .hero-stat:last-child { border-right: none; }
+    .stat-val {
+      font-family: var(--display);
+      font-size: 2rem;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+    .stat-val span { color: var(--green); }
+    .stat-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      color: var(--faint);
+      text-transform: uppercase;
+    }
+
+    /* section common */
+    section { padding: 120px 0; }
+    .sec-tag {
+      font-size: 0.75rem;
+      color: var(--green);
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .sec-tag::before { content: '//'; opacity: 0.5; }
+    .sec-headline {
+      font-family: var(--display);
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      font-weight: 700;
+      line-height: 1.1;
+    }
+
+    /* about (updated with full bio) */
+    #about { background: var(--surface); }
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.1fr;
+      gap: 80px;
+    }
+    .focus-item {
+      display: grid;
+      grid-template-columns: 40px 1fr;
+      gap: 16px;
+      padding: 28px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .focus-item:first-child { border-top: 1px solid var(--border); }
+    .focus-icon { font-size: 0.8rem; color: var(--faint); }
+    .focus-name { font-family: var(--display); font-weight: 600; margin-bottom: 6px; }
+    .focus-detail { font-size: 0.85rem; color: var(--dim); }
+
+    .about-statement {
+      font-family: var(--display);
+      font-size: 1.4rem;
+      font-weight: 600;
+      line-height: 1.4;
+      border-left: 3px solid var(--green);
+      padding-left: 24px;
+      margin-bottom: 32px;
+    }
+    .about-body {
+      color: var(--dim);
+      margin-bottom: 20px;
+      font-size: 0.95rem;
+    }
+    .tech-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 24px;
+    }
+    .chip {
+      font-size: 0.7rem;
+      border: 1px solid var(--border);
+      padding: 6px 16px;
+      color: var(--dim);
+      transition: 0.2s;
+    }
+    .chip:hover { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+    .chip.primary { border-color: var(--green); color: var(--green); }
+
+    /* work (projects) */
+    .work-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      margin-bottom: 60px;
+    }
+    .github-link {
+      font-size: 0.8rem;
+      border: 1px solid var(--border-hi);
+      padding: 10px 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .github-link:hover { border-color: var(--green); color: var(--green); }
+    .project-row {
+      display: grid;
+      grid-template-columns: 70px 1fr 40px;
+      gap: 24px;
+      align-items: center;
+      padding: 32px 0;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .project-row:first-child { border-top: 1px solid var(--border); }
+    .project-row:hover { background: var(--raise); }
+    .project-num { font-size: 0.75rem; color: var(--faint); }
+    .project-name { font-family: var(--display); font-weight: 700; font-size: 1.2rem; margin-bottom: 4px; }
+    .project-desc { font-size: 0.85rem; color: var(--dim); margin-bottom: 12px; }
+    .project-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+    .ptag { font-size: 0.6rem; border: 1px solid var(--border); padding: 4px 10px; color: var(--faint); }
+    .project-arrow { font-size: 1.2rem; color: var(--faint); transition: 0.2s; }
+    .project-row:hover .project-arrow { color: var(--green); transform: translate(4px, -4px); }
+
+    /* capabilities (expanded with AI systems section) */
+    .cap-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      margin-top: 70px;
+    }
+    .cap-cell {
+      background: var(--surface);
+      padding: 48px 44px;
+      transition: background 0.2s;
+    }
+    .cap-cell:hover { background: var(--raise); }
+    .cap-icon { font-size: 2rem; margin-bottom: 28px; color: var(--green); }
+    .cap-title { font-family: var(--display); font-weight: 700; font-size: 1.3rem; }
+    .cap-desc { color: var(--dim); margin: 12px 0 20px; font-size: 0.85rem; }
+    .cap-stack { display: flex; flex-wrap: wrap; gap: 8px; }
+    .cap-tag { font-size: 0.6rem; color: var(--green); opacity: 0.8; }
+    .cap-tag::before { content: '#'; }
+
+    /* new AI SYSTEMS section (full description) */
+    #ai-systems {
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .ai-content {
+      max-width: 900px;
+    }
+    .ai-lede {
+      font-size: 1.1rem;
+      color: var(--white);
+      margin-bottom: 48px;
+      font-family: var(--display);
+      font-weight: 500;
+    }
+    .ai-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 40px;
+      margin: 48px 0 32px;
+    }
+    .ai-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 32px;
+      transition: background 0.2s;
+    }
+    .ai-card:hover { background: var(--raise); }
+    .ai-card h3 {
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: 1.25rem;
+      margin-bottom: 16px;
+      color: var(--green);
+    }
+    .ai-card p {
+      color: var(--dim);
+      font-size: 0.9rem;
+      line-height: 1.7;
+    }
+    .ai-footer {
+      margin-top: 48px;
+      padding: 32px 0 0;
+      border-top: 1px solid var(--border);
+      color: var(--dim);
+      font-size: 0.95rem;
+    }
+    .ai-footer strong {
+      color: var(--green);
+      font-weight: 500;
+    }
+
+    /* approach */
+    #approach { position: relative; overflow: hidden; }
+    .approach-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 70px;
+    }
+    .approach-step {
+      display: grid;
+      grid-template-columns: 44px 1fr;
+      gap: 18px;
+      padding: 28px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .approach-step:first-child { border-top: 1px solid var(--border); }
+    .step-num { color: var(--green); font-size: 0.8rem; }
+    .step-title { font-family: var(--display); font-weight: 600; }
+    .step-text { color: var(--dim); font-size: 0.85rem; }
+    .approach-callout {
+      background: var(--raise);
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--green);
+      padding: 44px;
+    }
+    .callout-label { color: var(--green); font-size: 0.7rem; letter-spacing: 0.2em; }
+    .callout-text { font-family: var(--display); font-size: 1.4rem; font-weight: 600; margin: 20px 0; }
+    .exploring-item { display: flex; gap: 12px; color: var(--dim); margin: 16px 0; font-size: 0.9rem; }
+    .exploring-item::before { content: '→'; color: var(--amber); }
+
+    /* contact */
+    #contact { background: var(--surface); }
+    .contact-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 90px;
+    }
+    .contact-links { margin-top: 40px; }
+    .contact-link-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 22px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .contact-link-row:first-child { border-top: 1px solid var(--border); }
+    .contact-link-label { font-size: 0.7rem; color: var(--faint); text-transform: uppercase; }
+    .contact-link-val { font-family: var(--display); font-weight: 600; }
+    .contact-link-arrow { color: var(--faint); }
+    a:hover .contact-link-val { color: var(--green); }
+    a:hover .contact-link-arrow { color: var(--green); transform: translate(3px, -3px); }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 28px;
+    }
+    .form-group label {
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--faint);
+    }
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      background: var(--raise);
+      border: 1px solid var(--border);
+      padding: 14px 20px;
+      font-family: var(--mono);
+      color: var(--white);
+      font-size: 0.85rem;
+      outline: none;
+    }
+    .form-group input:focus,
+    .form-group textarea:focus { border-color: var(--green); }
+    .form-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* footer */
+    footer { border-top: 1px solid var(--border); padding: 44px 0; }
+    .footer-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 24px;
+    }
+    .footer-left { font-family: var(--display); font-weight: 700; font-size: 1.1rem; }
+    .footer-left span { color: var(--green); }
+    .footer-mid { font-size: 0.7rem; color: var(--faint); }
+    .footer-right a { font-size: 0.7rem; margin-left: 32px; color: var(--dim); }
+    .footer-right a:hover { color: var(--green); }
+
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+    @media (max-width:700px) {
+      .hero-stats { flex-direction: column; }
+      .hero-stat { border-right: none; border-bottom: 1px solid var(--border); padding: 24px; }
+      .about-grid, .approach-inner, .contact-inner { grid-template-columns: 1fr; }
+      .cap-grid { grid-template-columns: 1fr; }
+      .footer-inner { flex-direction: column; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- CUSTOM CURSOR -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- fixed nav -->
+<nav id="nav">
+  <div class="nav-id">
+    <div class="nav-name">Kinza Sheikh</div>
+    <div class="nav-title">// developer & builder</div>
+  </div>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <!-- <li><a href="#work">Work</a></li> -->
+    <li><a href="#ai-systems">AI Systems</a></li> 
+    <li><a href="#approach">Approach</a></li>
+  </ul>
+  <a href="#contact" class="nav-badge">Start a project</a>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-prompt reveal in">
+    <span style="color: var(--dim);">~/kinza</span> $ ./build --ship<span class="caret"></span>
+  </div>
+
+  <div class="hero-code-line reveal in" style="transition-delay:0.1s;">
+    I build <span class="accent">software</span><br/>
+    that <span class="accent-amber">ships</span>.
+  </div>
+
+  <div class="hero-bottom reveal" style="transition-delay:0.2s;">
+    <p class="hero-desc">
+     Software Engineering Student building digital products, AI-assisted systems, and early-stage SaaS experiments.
+ — I design and build practical software systems that combine backend engineering, AI capabilities, and product thinking.
+    </p>
+    <div class="hero-location">
+      <span class="dot"></span> Pakistan · remote, worldwide
+    </div>
+    <div class="hero-actions">
+      <a href="#work" class="btn-primary">View projects</a>
+      <a href="#contact" class="btn-outline">Let's talk</a>
+    </div>
+  </div>
+
+  <!-- stats -->
+  <div class="hero-stats reveal" style="transition-delay:0.3s;">
+    <div class="hero-stat"><div class="stat-val"><span>Java</span> / Spring</div><div class="stat-label">backend core</div></div>
+    <div class="hero-stat"><div class="stat-val"><span>LLM</span> wrappers</div><div class="stat-label">AI integrations</div></div>
+    <div class="hero-stat"><div class="stat-val">idea → <span>MVP</span></div><div class="stat-label">rapid prototype</div></div>
+    <div class="hero-stat"><div class="stat-val"><span>ship</span> first</div><div class="stat-label">refine later</div></div>
+  </div>
+</section>
+
+<!-- ABOUT (updated with full bio) -->
+<section id="about">
+  <div class="container about-grid">
+    <div class="reveal">
+      <div class="sec-tag">About</div>
+      <h2 class="sec-headline">Builder.<br/>Problem solver.</h2>
+      <div class="focus-list">
+        <div class="focus-item"><span class="focus-icon">[01]</span><div><div class="focus-name">Digital products</div><div class="focus-detail">From idea to working prototype — fast, functional</div></div></div>
+        <div class="focus-item"><span class="focus-icon">[02]</span><div><div class="focus-name">AI‑powered apps</div><div class="focus-detail">Wrapper apps around modern LLMs that solve real problems</div></div></div>
+        <div class="focus-item"><span class="focus-icon">[03]</span><div><div class="focus-name">Internal tooling</div><div class="focus-detail">Simplify workflows, cut manual effort</div></div></div>
+        <div class="focus-item"><span class="focus-icon">[04]</span><div><div class="focus-name">SaaS experiments</div><div class="focus-detail">Small-scale systems that evolve into products</div></div></div>
+      </div>
+    </div>
+    <div class="reveal" style="transition-delay:0.1s">
+      <div class="about-statement">“I approach projects as a builder first — shipping functional solutions, testing them in real scenarios, and refining based on usage rather than theory.”</div>
+      <p class="about-body">
+        I design and build practical software systems that combine backend engineering, AI capabilities, and product thinking. 
+        My work focuses on developing digital products from idea to working prototype, building AI-powered wrapper applications 
+        around modern models, creating internal tools that simplify workflows and reduce manual effort, and experimenting with 
+        small-scale systems that can evolve into SaaS products.
+      </p>
+      <p class="about-body" style="margin-top: 10px;">
+        <span style="color: var(--green);">Currently exploring the intersection of:</span><br/>
+        Backend Systems (Java / Spring Boot) · AI Integrations & LLM Tooling · Lightweight Product Development · Workflow Automation Where It Adds Real Value
+      </p>
+      <div class="tech-chips">
+        <span class="chip primary">Java</span><span class="chip primary">Spring Boot</span><span class="chip primary">LLM APIs</span>
+        <span class="chip">Python</span><span class="chip">PostgreSQL</span><span class="chip">Docker</span><span class="chip">REST</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WORK (github link corrected to kinzayy08) -->
+<!-- <section id="work">
+  <div class="container">
+    <div class="work-header">
+      <div class="reveal"><div class="sec-tag">Work</div><h2 class="sec-headline">Projects that shipped</h2></div>
+      <a class="github-link reveal" href="https://github.com/kinzayy08" target="_blank"> github/kinzayy08 ↗</a>
+    </div>
+    <div class="projects-list">
+      <div class="project-row reveal" onclick="window.open('https://github.com/kinzayy08','_blank')">
+        <span class="project-num">001</span>
+        <div><div class="project-name">AI Document Assistant</div><div class="project-desc">RAG over PDFs using Spring Boot + OpenAI.</div><div class="project-tags"><span class="ptag">Java</span><span class="ptag">Spring</span><span class="ptag">OpenAI</span></div></div>
+        <span class="project-arrow">↗</span>
+      </div>
+      <div class="project-row reveal" onclick="window.open('https://github.com/kinzayy08','_blank')">
+        <span class="project-num">002</span>
+        <div><div class="project-name">Workflow Automation Engine</div><div class="project-desc">Custom internal tool, cut manual steps by 70%.</div><div class="project-tags"><span class="ptag">Spring</span><span class="ptag">PostgreSQL</span></div></div>
+        <span class="project-arrow">↗</span>
+      </div>
+      <div class="project-row reveal" onclick="window.open('https://github.com/kinzayy08','_blank')">
+        <span class="project-num">003</span>
+        <div><div class="project-name">SaaS Idea Validator (CLI)</div><div class="project-desc">LLM‑powered idea analysis under 30s.</div><div class="project-tags"><span class="ptag">Python</span><span class="ptag">LLM</span></div></div>
+        <span class="project-arrow">↗</span>
+      </div>
+      <div class="project-row reveal" onclick="window.open('https://github.com/kinzayy08','_blank')">
+        <span class="project-num">004</span>
+        <div><div class="project-name">Smart Report Generator</div><div class="project-desc">Scheduled PDF reports from multiple sources.</div><div class="project-tags"><span class="ptag">Spring</span><span class="ptag">scheduler</span></div></div>
+        <span class="project-arrow">↗</span>
+      </div>
+    </div>
+  </div>
+</section> -->
+
+<!-- NEW AI SYSTEMS & APPLIED AUTOMATION SECTION (full description) -->
+
+<section id="ai-systems">
+  <div class="container">
+    <div class="sec-tag">AI Systems</div>
+    <h2 class="sec-headline">Applied AI — Not Just Experiments</h2>
+
+    <div class="ai-grid">
+
+      <div class="ai-card">
+        <h3>Multi-LLM Research System</h3>
+        <p>
+          Built a system that routes queries across multiple LLM providers to compare responses,
+          extract structured insights, and reduce hallucination risk.
+          Designed for experimentation, evaluation, and workflow integration.
+        </p>
+      </div>
+
+      <div class="ai-card">
+        <h3>AI Academic Assistant</h3>
+        <p>
+          A document-aware assistant designed to help students analyze academic material,
+          summarize readings, and extract key concepts from PDFs and notes.
+          Focused on practical usage rather than chatbot novelty.
+        </p>
+      </div>
+
+      <div class="ai-card">
+        <h3>Custom Chatbot Implementations</h3>
+        <p>
+          Developed multiple task-focused chatbot systems for structured Q&A,
+          workflow assistance, and guided interaction — built as modular wrappers
+          over modern LLM APIs rather than generic chat interfaces.
+        </p>
+      </div>
+
+      <div class="ai-card">
+        <h3>AI Wrapper Product Experiments</h3>
+        <p>
+          Rapid prototypes exploring how AI can be embedded into real software products —
+          transforming manual workflows into assisted pipelines instead of standalone tools.
+        </p>
+      </div>
+
+    </div>
+
+    <div class="ai-footer">
+      These systems are actively being refined and prepared for production use.
+      Current focus is validating real-world applications before scaling into SaaS offerings.
+    </div>
+  </div>
+</section>
+
+<!-- APPROACH -->
+<section id="approach">
+  <div class="container approach-inner">
+    <div>
+      <div class="reveal"><div class="sec-tag">approach</div><h2 class="sec-headline">Ship. Test. Refine.</h2></div>
+      <div class="approach-steps">
+        <div class="approach-step"><span class="step-num">01</span><div><div class="step-title">Understand core problem</div><div class="step-text">No assumptions, just clarity.</div></div></div>
+        <div class="approach-step"><span class="step-num">02</span><div><div class="step-title">Build minimal working version</div><div class="step-text">Code that runs, not slides.</div></div></div>
+        <div class="approach-step"><span class="step-num">03</span><div><div class="step-title">Refine with real use</div><div class="step-text">Iterate based on actual feedback.</div></div></div>
+      </div>
+    </div>
+    <div class="reveal">
+      <div class="approach-callout">
+        <div class="callout-label">// now exploring</div>
+        <div class="callout-text">Backend + AI tooling that actually ships</div>
+        <div class="exploring-item">Java/Spring + LLM wrappers</div>
+        <div class="exploring-item">Lightweight SaaS prototypes</div>
+        <div class="exploring-item">Workflow automation for real teams</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT (updated linkedIn & github) -->
+<section id="contact">
+  <div class="container contact-inner">
+    <div class="reveal">
+      <div class="sec-tag">Contact</div>
+      <h2 class="sec-headline">Let's build something.</h2>
+      <p class="contact-body">Remote‑friendly. I reply within 48h.</p>
+      <div class="contact-links">
+        <a href="https://www.linkedin.com/in/kinzasheikh" target="_blank">
+          <div class="contact-link-row">
+            <div><div class="contact-link-label">LinkedIn</div><div class="contact-link-val">/in/kinzasheikh</div></div>
+            <span class="contact-link-arrow">↗</span>
+          </div>
+        </a>
+        <a href="https://github.com/kinzay08" target="_blank">
+          <div class="contact-link-row">
+            <div><div class="contact-link-label">GitHub</div><div class="contact-link-val">/kinzayy08</div></div>
+            <span class="contact-link-arrow">↗</span>
+          </div>
+        </a>
+        <div class="contact-link-row">
+          <div><div class="contact-link-label">Location</div><div class="contact-link-val">Pakistan · worldwide</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="reveal">
+      <form class="contact-form"  action="/contact" method="POST">
+        <div class="form-group"><label>Name</label><input type="text" placeholder="" name="name"/></div>
+        <div class="form-group"><label>Email</label><input type="email" placeholder="" name="email"/></div>
+        <div class="form-group"><label>Project type</label><select name="project_type"><option>Backend / API</option><option>AI wrapper</option><option>prototype</option></select></div>
+        <div class="form-group"><label>Message</label><textarea rows="4" placeholder="Tell me about your project..." name="message"></textarea></div>
+        <div class="form-footer"><span class="form-note"><span>48h</span> response</span><button class="btn-primary" type="submit">Send</button></div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container footer-inner">
+    <div class="footer-left">Kinza <span>Sheikh</span></div>
+    <div class="footer-mid">© 2025 · building software that ships</div>
+    <div class="footer-right">
+      <a href="https://github.com/kinzay08" target="_blank">GitHub</a>
+      <a href="https://www.linkedin.com/in/kinzasheikh" target="_blank">LinkedIn</a>
+      <a href="#contact">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // nav scroll
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll',()=>nav.classList.toggle('scrolled',window.scrollY>50),{passive:true});
+
+  // reveal observer
+  const obs = new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');obs.unobserve(e.target);}})},{threshold:0.1});
+  document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+
+  // custom cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mouseX = 0, mouseY = 0;
+  let ringX = 0, ringY = 0;
+
+  document.addEventListener('mousemove', (e) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+    cursor.style.left = mouseX + 'px';
+    cursor.style.top = mouseY + 'px';
+  });
+
+  function animateRing() {
+    ringX += (mouseX - ringX) * 0.12;
+    ringY += (mouseY - ringY) * 0.12;
+    ring.style.left = ringX + 'px';
+    ring.style.top = ringY + 'px';
+    requestAnimationFrame(animateRing);
+  }
+  animateRing();
+
+  // hover enlarge
+  document.querySelectorAll('a, button, .project-row, .chip, .cap-cell, .focus-item, .nav-badge, .btn-primary, .btn-outline, .github-link, .ai-card').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      cursor.style.width = '14px';
+      cursor.style.height = '14px';
+      ring.style.width = '56px';
+      ring.style.height = '56px';
+    });
+    el.addEventListener('mouseleave', () => {
+      cursor.style.width = '8px';
+      cursor.style.height = '8px';
+      ring.style.width = '36px';
+      ring.style.height = '36px';
+    });
+  });
+</script>
+
+</body>
+</html>

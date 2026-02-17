@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Dashboard</title>
+<style>
+  table, th, td { border: 1px solid black; border-collapse: collapse; padding: 8px; }
+</style>
+</head>
+<body>
+  <h2>Admin Dashboard</h2>
+  <a href="{{ url_for('admin_logout') }}">Logout</a><br>
+  <a href="{{ url_for('admin_projects') }}">Projects</a>
+  <table>
+    <tr>
+      <th>Name</th>
+      <th>Email</th>
+      <th>Message</th>
+      <th>Date</th>
+    </tr>
+    {% for msg in messages %}
+    <tr>
+      <td>{{ msg.name }}</td>
+      <td>{{ msg.email }}</td>
+      <td>{{ msg.message }}</td>
+      <td>{{ msg.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</body>
+</html>

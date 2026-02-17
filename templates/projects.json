@@ -1,0 +1,102 @@
+[
+    {
+        "id": 1,
+        "title": "E-Commerce Platform",
+        "description": "Full-stack e-commerce solution with payment integration, inventory management, and real-time analytics dashboard",
+        "image": "https://images.unsplash.com/photo-1557821552-17105176677c?w=600&h=400&fit=crop",
+        "tags": ["React", "Node.js", "MongoDB", "Stripe"],
+        "category": "web",
+        "link": "#",
+        "featured": true
+    },
+    {
+        "id": 2,
+        "title": "AI Content Generator",
+        "description": "Machine learning powered content generation tool using GPT-4 API with custom fine-tuning",
+        "image": "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=600&h=400&fit=crop",
+        "tags": ["Python", "OpenAI", "Flask", "AI"],
+        "category": "ai",
+        "link": "#",
+        "featured": true
+    },
+    {
+        "id": 3,
+        "title": "Task Management App",
+        "description": "Collaborative project management tool with real-time updates, team chat, and Kanban boards",
+        "image": "https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?w=600&h=400&fit=crop",
+        "tags": ["Vue.js", "Firebase", "Tailwind"],
+        "category": "web",
+        "link": "#",
+        "featured": false
+    },
+    {
+        "id": 4,
+        "title": "Data Visualization Dashboard",
+        "description": "Interactive analytics dashboard for business intelligence with customizable widgets and reports",
+        "image": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&h=400&fit=crop",
+        "tags": ["D3.js", "React", "Python", "Pandas"],
+        "category": "data",
+        "link": "#",
+        "featured": false
+    },
+    {
+        "id": 5,
+        "title": "Mobile Fitness Tracker",
+        "description": "Cross-platform mobile app for workout tracking, nutrition logging, and progress visualization",
+        "image": "https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=600&h=400&fit=crop",
+        "tags": ["React Native", "Redux", "Firebase"],
+        "category": "mobile",
+        "link": "#",
+        "featured": false
+    },
+    {
+        "id": 6,
+        "title": "Blockchain Voting System",
+        "description": "Secure decentralized voting platform using blockchain technology for transparent elections",
+        "image": "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=600&h=400&fit=crop",
+        "tags": ["Solidity", "Web3.js", "Ethereum"],
+        "category": "blockchain",
+        "link": "#",
+        "featured": false
+    },
+    {
+        "id": 7,
+        "title": "Social Media Analytics",
+        "description": "Comprehensive social media monitoring and analytics platform with sentiment analysis",
+        "image": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&h=400&fit=crop",
+        "tags": ["Python", "NLP", "React", "PostgreSQL"],
+        "category": "data",
+        "link": "#",
+        "featured": false
+    },
+    {
+        "id": 8,
+        "title": "Real Estate Marketplace",
+        "description": "Property listing platform with advanced search filters, virtual tours, and mortgage calculator",
+        "image": "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600&h=400&fit=crop",
+        "tags": ["Next.js", "GraphQL", "PostgreSQL"],
+        "category": "web",
+        "link": "#",
+        "featured": false
+    },
+    {
+        "id": 9,
+        "title": "Healthcare Appointment System",
+        "description": "Telemedicine platform with video consultations, prescription management, and patient records",
+        "image": "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=600&h=400&fit=crop",
+        "tags": ["React", "WebRTC", "Node.js", "MongoDB"],
+        "category": "web",
+        "link": "#",
+        "featured": false
+    },
+    {
+        "id": 10,
+        "title": "Machine Learning Model Deployment",
+        "description": "Scalable ML model serving platform with A/B testing and performance monitoring",
+        "image": "https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=600&h=400&fit=crop",
+        "tags": ["Python", "TensorFlow", "Docker", "Kubernetes"],
+        "category": "ai",
+        "link": "#",
+        "featured": false
+    }
+]
