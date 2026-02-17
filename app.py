@@ -126,4 +126,4 @@ def delete_project(project_id):
         flash("Project not found.", "danger")
     return redirect(url_for("admin_projects"))
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000)
